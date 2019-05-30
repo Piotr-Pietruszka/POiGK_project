@@ -11,14 +11,12 @@ import javax.media.j3d.*;
 import javax.vecmath.*;
 import com.sun.j3d.utils.applet.MainFrame;
 import com.sun.j3d.utils.universe.SimpleUniverse;
-//import com.sun.j3d.utils.universe.PlatformGeometry;
-//import com.sun.j3d.utils.behaviors.keyboard.*;
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 import com.sun.j3d.utils.geometry.Cylinder;
 import com.sun.j3d.utils.geometry.Sphere;
 
-public class Project_POiG extends Applet implements KeyListener {
+public class Project_POiG_pol extends Applet implements KeyListener {
 
  private SimpleUniverse universe = null;
  private Canvas3D canvas = null;
@@ -29,7 +27,7 @@ public class Project_POiG extends Applet implements KeyListener {
  private TransformGroup  arm_height_control = new TransformGroup();
  private Transform3D    arm_height_control3d = new Transform3D();
  private Transform3D arm_height_control3d_step = new Transform3D();
-  private TransformGroup  arm_width_control = new TransformGroup();
+ private TransformGroup  arm_width_control = new TransformGroup();
  private Transform3D    arm_width_control3d = new Transform3D();
  private Transform3D arm_width_control3d_step = new Transform3D();
  private Matrix4d matrix = new Matrix4d();
@@ -37,7 +35,7 @@ public class Project_POiG extends Applet implements KeyListener {
  private float base_height=5;
  Cylinder arm_height = null;
 
- public Project_POiG() {
+ public Project_POiG_pol() {
   setLayout(new BorderLayout());
   GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
 
@@ -55,24 +53,11 @@ public class Project_POiG extends Applet implements KeyListener {
 
  private BranchGroup createSceneGraph() {
   BranchGroup objRoot = new BranchGroup();
- BoundingSphere bounds = new BoundingSphere(new Point3d(), 10000.0);
-  //trans = universe.getViewingPlatform().getViewPlatformTransform();
-  
-  //KeyNavigatorBehavior keyNavBeh = new KeyNavigatorBehavior(trans);
-  //keyNavBeh.setSchedulingBounds(bounds);
- // PlatformGeometry platformGeom = new PlatformGeometry();
- // platformGeom.addChild(keyNavBeh);
-  //universe.getViewingPlatform().setPlatformGeometry(platformGeom);
-//        Color3f light1Color = new Color3f(0.1f,0.1f,0.1f);
-//        Vector3f light1Direction = new Vector3f(4.0f, -7.0f, -12.0f);
-//        DirectionalLight light1 = new DirectionalLight(light1Color,light1Direction);
-//        light1.setInfluencingBounds(bounds);
-//        objRoot.addChild(light1);
-        
-//        Color3f ambientColor = new Color3f(200.0f,200.0f,200.0f);
-//        AmbientLight ambientLightNode = new AmbientLight(ambientColor);
-//        ambientLightNode.setInfluencingBounds(bounds);
-//        objRoot.addChild(ambientLightNode);
+ BoundingSphere bounds = new BoundingSphere(new Point3d(), 10000.0);        
+        Color3f ambientColor = new Color3f(200.0f,200.0f,200.0f);
+        AmbientLight ambientLightNode = new AmbientLight(ambientColor);
+        ambientLightNode.setInfluencingBounds(bounds);
+        objRoot.addChild(ambientLightNode);
         objRoot.addChild(createPrimitives());
 
   return objRoot;
@@ -87,7 +72,7 @@ public class Project_POiG extends Applet implements KeyListener {
   base3d.setRotation(new AxisAngle4f(0.0f, 0.0f, 0.0f, 0.0f));
   base3d.setScale(1.0);
   base.setTransform(base3d);
-  Appearance base_ap = createAppearance(new Color3f(138f, 127f, 128f));
+  Appearance base_ap = createAppearance(new Color3f(1.0f, 0.0f, 0.0f));
   base.addChild(new Cylinder(1.0f, base_height, base_ap));
 
    arm_height_control.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
@@ -95,39 +80,23 @@ public class Project_POiG extends Applet implements KeyListener {
    arm_height_control3d.setRotation(new AxisAngle4f(0.0f, 0.0f, 3.14f, 1.57f));
    arm_height_control3d.setScale(1);
    arm_height_control.setTransform( arm_height_control3d);
-   Appearance arm_height_ap = createAppearance(new Color3f(138f, 127f, 128f));
+   Appearance arm_height_ap = createAppearance(new Color3f(0.0f, 1.0f, 0.0f));
    Cylinder arm_height = new Cylinder(0.3f, 3.0f, arm_height_ap);
    arm_height_control.addChild(arm_height);
 
-  arm_width_control.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+  TransformGroup arm_width_control = new TransformGroup();
+  Transform3D arm_width_control3d = new Transform3D();
   arm_width_control3d.setTranslation(new Vector3d(0, -2, 0));
   arm_width_control3d.setRotation(new AxisAngle4f(0.0f, 0.0f, 0.0f, 0.0f));
   arm_width_control3d.setScale(1);
   arm_width_control.setTransform(arm_width_control3d);
-  Appearance arm_width_ap = createAppearance(new Color3f(138f, 127f, 128f));
-  Cylinder arm_width = new Cylinder(0.2f,2f, arm_width_ap);
+  Appearance arm_width_ap = createAppearance(new Color3f(0.0f, 0.0f, 1.0f));
+  Cylinder arm_width = new Cylinder(0.2f,0.2f, arm_width_ap);
   arm_width_control.addChild(arm_width);
 
   arm_height_control.addChild(arm_width_control);
   base.addChild( arm_height_control);
   objRoot.addChild(base);
-
-  base.addChild(createLight(0.1f, 0.2f, 0.2f, 5f, 2f, -10f));
-  base.addChild(createLight(0.1f, 0.2f, 0.2f, 5f, 2f, 10f));
-  // arm_height_control.addChild(createLight(0.1f, 0.2f, 0.2f, 10f, -7f, 10f));
-  //arm_height_control.addChild(createLight(0.1f, 0.2f, 0.2f, -10f, 7f, -10f));
-  //arm_width_control.addChild(createLight(2.0f, 3.0f, 1.5f, -0.3f, -0.2f, -1.0f));
-  
-//  base.addChild(createLight(0.5f, 0.5f, 0.5f, 10.0f, 0.0f, 0.0f));
-//  arm_height_control.addChild(createLight(0.5f, 0.5f, 0.5f, 0f, 10f, 0f));
-//  arm_height_control.addChild(createLight(0.5f, 0.5f, 0.5f, 10f, 0f, 0f));
-//  arm_height_control.addChild(createLight(2.0f, 3.0f, 1.5f, 0f, 1f, 0f));
-//  arm_height_control.addChild(createLight(2.0f, 3.0f, 1.5f, -1f, 0f, 0f));
-//  arm_height_control.addChild(createLight(2.0f, 3.0f, 1.5f, 0f, -1f, 0f));
-//  arm_height_control.addChild(createLight(2.0f, 3.0f, 1.5f, 0f, 0f, 1f));
-//  arm_height_control.addChild(createLight(2.0f, 3.0f, 1.5f, 0f, 0f, -1f));
-//  
-
   objRoot.compile();
 
   return objRoot;
@@ -137,20 +106,9 @@ public class Project_POiG extends Applet implements KeyListener {
  private Appearance createAppearance(Color3f color) {
   Appearance ap = new Appearance();
   Material mat = new Material();
-  mat.setSpecularColor(color);
+  mat.setAmbientColor(color);
   ap.setMaterial(mat);
-  
   return ap;
- }
-
- private Light createLight(float r, float g, float b, float x, float y,
-   float z) {
-  DirectionalLight light = new DirectionalLight(true,
-    new Color3f(r, g, b), new Vector3f(x, y, z));
-
-  light.setInfluencingBounds(new BoundingSphere(new Point3d(), 10000.0));
-
-  return light;
  }
 
  public static void main(String[] args) {
@@ -182,50 +140,34 @@ public class Project_POiG extends Applet implements KeyListener {
   }
 
   if (key == 'w') {
-    //arm_height_control3d_step.rotY(Math.PI / 32);
      arm_height_control3d_step.setTranslation(new Vector3d(0.1, 0, 0.0));
     arm_height_control.getTransform( arm_height_control3d);
     arm_height_control3d.get(matrix);
-    //arm_height_control3d.setTranslation(new Vector3d(0.0, 0.0, 0.0));
     arm_height_control3d.mul( arm_height_control3d_step);
-   // arm_height_control3d.setTranslation(new Vector3d(matrix.m03, matrix.m13, matrix.m23));
     arm_height_control.setTransform( arm_height_control3d);
   }
 
   if (key == 's') {
-    //arm_height_control3d_step.rotY(Math.PI / 32);
         arm_height_control3d_step.setTranslation(new Vector3d(-0.1, 0, 0.0));
         arm_height_control.getTransform( arm_height_control3d);
         arm_height_control3d.get(matrix);
-        //arm_height_control3d.setTranslation(new Vector3d(0.0, 0.0, 0.0));
         arm_height_control3d.mul( arm_height_control3d_step);
-        //arm_height_control3d.setTranslation(new Vector3d(matrix.m03, matrix.m13, matrix.m23));
         arm_height_control.setTransform( arm_height_control3d);
-      
-  }
-  
-  if (key == 'a') {
-    //arm_height_control3d_step.rotY(Math.PI / 32);
+     }
+   if (key == 'a') {
      arm_width_control3d_step.setTranslation(new Vector3d(0, 0.1, 0.0));
     arm_width_control.getTransform( arm_width_control3d);
     arm_width_control3d.get(matrix);
-    //arm_height_control3d.setTranslation(new Vector3d(0.0, 0.0, 0.0));
     arm_width_control3d.mul( arm_width_control3d_step);
-   // arm_height_control3d.setTranslation(new Vector3d(matrix.m03, matrix.m13, matrix.m23));
     arm_width_control.setTransform( arm_width_control3d);
   }
 
   if (key == 'd') {
-          
-    //arm_height_control3d_step.rotY(Math.PI / 32);
         arm_width_control3d_step .setTranslation(new Vector3d(0, -0.1, 0.0));
         arm_width_control .getTransform( arm_width_control3d);
         arm_width_control3d.get(matrix);
-        //arm_height_control3d.setTranslation(new Vector3d(0.0, 0.0, 0.0));
         arm_width_control3d.mul( arm_width_control3d_step);
-        //arm_height_control3d.setTranslation(new Vector3d(matrix.m03, matrix.m13, matrix.m23));
         arm_width_control.setTransform( arm_width_control3d);
-      
   }
 
  }
