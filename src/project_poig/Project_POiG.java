@@ -159,16 +159,6 @@ public class Project_POiG extends Applet implements KeyListener {
   return ap;
  }
 
- private Light createLight(float r, float g, float b, float x, float y,
-   float z,  float x2, float y2, float z2) {
-   DirectionalLight light = new DirectionalLight(true,
-   new Color3f(r, g, b), new Vector3f(x, y, z));
-
-    light.setInfluencingBounds(new BoundingSphere(new Point3d(x2, y2, z2), 10000.0));
-
-    return light;
- }
- 
  private PointLight createPointLight(float r, float g, float b, float x, float y,
    float z,  float x2, float y2, float z2) {
 
