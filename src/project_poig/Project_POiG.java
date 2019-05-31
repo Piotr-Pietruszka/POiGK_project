@@ -10,16 +10,12 @@ import java.awt.*;
 import javax.media.j3d.*;
 import javax.vecmath.*;
 import com.sun.j3d.utils.applet.MainFrame;
+import com.sun.j3d.utils.geometry.Box;
 import com.sun.j3d.utils.universe.SimpleUniverse;
-//import com.sun.j3d.utils.universe.PlatformGeometry;
-//import com.sun.j3d.utils.behaviors.keyboard.*;
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 import com.sun.j3d.utils.geometry.Cylinder;
 import com.sun.j3d.utils.geometry.Sphere;
-import javax.media.j3d.WakeupOnCollisionExit;
-import javax.media.j3d.WakeupOnCollisionEntry;
-
 public class Project_POiG extends Applet implements KeyListener {
 
  private SimpleUniverse universe = null;
@@ -71,6 +67,7 @@ public class Project_POiG extends Applet implements KeyListener {
 
  private BranchGroup createSceneGraph() {
   BranchGroup objRoot = new BranchGroup();
+
   BoundingSphere bounds = new BoundingSphere(new Point3d(), 10000.0);
  
   objRoot.addChild(createPrimitives());
@@ -88,33 +85,34 @@ public class Project_POiG extends Applet implements KeyListener {
   base3d.setScale(1.0);
   base.setTransform(base3d);
   Appearance base_ap = createAppearance(new Color3f(138f, 127f, 128f));
+
   
-  Cylinder basic_cylinder = new Cylinder(1.0f, base_height, 1, 50, 10, base_ap);// cylinder głowny
+  Cylinder basic_cylinder = new Cylinder(0.5f, base_height, 1, 50, 10, base_ap);// cylinder głowny
                             //r, h, przezroczystość?, podział, podział(nieistotny, appearance)
   base.addChild(basic_cylinder);
   basic_cylinder.getCollisionBounds();
     
     
    arm_height_control.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-   arm_height_control3d.setTranslation(new Vector3d(2.0, 0.0, 0.0));
+   arm_height_control3d.setTranslation(new Vector3d(-1.0, 0.0, 0.0));
    arm_height_control3d.setRotation(new AxisAngle4f(0.0f, 0.0f, 3.14f, 1.57f));
    arm_height_control3d.setScale(1);
    arm_height_control.setTransform( arm_height_control3d);
    Appearance arm_height_ap = createAppearance(new Color3f(138f, 127f, 128f));
-   
-   Cylinder arm_height = new Cylinder(0.3f, 3.0f, arm_height_ap);//cylinder boczny duzy
-   
+
+   Box arm_height = new Box(0.3f, 2.0f,0.5f, arm_height_ap);
+
    arm_height_control.addChild(arm_height);
    
   arm_width_control.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-  arm_width_control3d.setTranslation(new Vector3d(0, -2, 0));
+  arm_width_control3d.setTranslation(new Vector3d(0, 1.55, 0));
   arm_width_control3d.setRotation(new AxisAngle4f(0.0f, 0.0f, 0.0f, 0.0f));
   arm_width_control3d.setScale(1);
   arm_width_control.setTransform(arm_width_control3d);
   Appearance arm_width_ap = createAppearance(new Color3f(138f, 127f, 128f));
-  
-  Cylinder arm_width = new Cylinder(0.2f,2f, arm_width_ap);//cylinder boczny maly
-  
+
+  Box arm_width = new Box(0.2f,1f,0.3f, arm_width_ap);
+
   arm_width_control.addChild(arm_width);
 
   
@@ -143,7 +141,7 @@ public class Project_POiG extends Applet implements KeyListener {
   objRoot.addChild(lp);//sw punktowe
   objRoot.addChild(createAmbientLight(0.3f, 0.6f, 0.6f));//sw ambient
   //-------------------------------
-  
+
   objRoot.compile();
 
   return objRoot;
