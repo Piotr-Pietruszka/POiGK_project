@@ -139,7 +139,7 @@ public class Project_POiG extends Applet implements KeyListener {
   //------
   
   objRoot.addChild(lp);//sw punktowe
-  objRoot.addChild(createAmbientLight(0.3f, 0.6f, 0.6f));//sw ambient
+  objRoot.addChild(createAmbientLight(0.5f, 1f, 1f));//sw ambient
   //-------------------------------
 
   objRoot.compile();
@@ -226,10 +226,10 @@ private Light createAmbientLight(float r, float g, float b) {
         arm_height_control.setTransform( arm_height_control3d);
       }
   }
-  if (key == 'a') {
-      if(radius > -1.5)
+  if (key == 'd') {
+      if(radius < 1.5)
       {
-        radius -= 0.1;
+        radius += 0.1;
         arm_width_control3d_step.setTranslation(new Vector3d(0, 0.1, 0.0));
         arm_width_control.getTransform( arm_width_control3d);
         arm_width_control3d.get(matrix);
@@ -237,10 +237,10 @@ private Light createAmbientLight(float r, float g, float b) {
         arm_width_control.setTransform( arm_width_control3d);
       }
   }
-   if (key == 'd') {
-    if(radius < 0.5)
+   if (key == 'a') {
+    if(radius > -0.5)
       {
-        radius += 0.1;
+        radius -= 0.1;
         Vector3f position = new Vector3f();
         arm_width_control3d.get(position);
         arm_width_control3d_step .setTranslation(new Vector3d(0, -0.1, 0.0));
