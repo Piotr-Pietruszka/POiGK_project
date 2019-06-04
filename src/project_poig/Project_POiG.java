@@ -10,6 +10,8 @@ import java.awt.*;
 import javax.media.j3d.*;
 import javax.vecmath.*;
 import com.sun.j3d.utils.applet.MainFrame;
+import com.sun.j3d.utils.behaviors.mouse.MouseRotate;
+import com.sun.j3d.utils.behaviors.mouse.MouseWheelZoom;
 import com.sun.j3d.utils.geometry.Box;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import java.awt.event.KeyListener;
@@ -20,9 +22,11 @@ public class Project_POiG extends Applet implements KeyListener {
 
  private SimpleUniverse universe = null;
  private Canvas3D canvas = null;
- private TransformGroup trans = null;
+
+ private TransformGroup ground = new TransformGroup();
+ private Transform3D ground_position = new Transform3D();
  
- private TransformGroup base = new TransformGroup();;
+ private TransformGroup base = new TransformGroup();
  private Transform3D base3d = new Transform3D();
  private Transform3D base3dstep = new Transform3D();
  
@@ -30,7 +34,7 @@ public class Project_POiG extends Applet implements KeyListener {
  private Transform3D    arm_height_control3d = new Transform3D();
  private Transform3D arm_height_control3d_step = new Transform3D();
  
-  private TransformGroup  arm_width_control = new TransformGroup();
+ private TransformGroup  arm_width_control = new TransformGroup();
  private Transform3D    arm_width_control3d = new Transform3D();
  private Transform3D arm_width_control3d_step = new Transform3D();
  
@@ -78,9 +82,21 @@ public class Project_POiG extends Applet implements KeyListener {
  private BranchGroup createPrimitives() {
 
   BranchGroup objRoot = new BranchGroup();
-
+  
+  
+  //Podstawa
+  ground.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+  ground_position.setTranslation(new Vector3d(0.0, -1.0, -20.0));
+  ground.setTransform(ground_position);
+  Appearance ground_ap = createAppearance(new Color3f(255f, 255f, 255f));
+  Cylinder ground_cylinder = new Cylinder(8.25f, 0.03f, ground_ap);
+  ground.addChild(ground_cylinder);
+  objRoot.addChild(ground);
+  
+  
+  //Glowny walec
   base.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-  base3d.setTranslation(new Vector3d(0.0, 0.0, -20.0));
+  base3d.setTranslation(new Vector3d(0.0, base_height/2, 0.0));
   base3d.setRotation(new AxisAngle4f(0.0f, 0.0f, 0.0f, 0.0f));
   base3d.setScale(1.0);
   base.setTransform(base3d);
@@ -88,22 +104,23 @@ public class Project_POiG extends Applet implements KeyListener {
 
   
   Cylinder basic_cylinder = new Cylinder(0.5f, base_height, 1, 50, 10, base_ap);// cylinder głowny
-                            //r, h, przezroczystość?, podział, podział(nieistotny, appearance)
+                                                    //r, h, przezroczystość?, podział, podział(nieistotny, appearance)
   base.addChild(basic_cylinder);
-  basic_cylinder.getCollisionBounds();
-    
-    
+  ground.addChild(base);  
+   
+  //Ramie(sterowanie wysokoscia)
    arm_height_control.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
    arm_height_control3d.setTranslation(new Vector3d(-1.0, 0.0, 0.0));
    arm_height_control3d.setRotation(new AxisAngle4f(0.0f, 0.0f, 3.14f, 1.57f));
    arm_height_control3d.setScale(1);
    arm_height_control.setTransform( arm_height_control3d);
-   Appearance arm_height_ap = createAppearance(new Color3f(138f, 127f, 128f));
+   Appearance arm_height_ap = createAppearance(new Color3f(138f, 127f, 128f));//138f, 127f, 128f
 
    Box arm_height = new Box(0.3f, 2.0f,0.5f, arm_height_ap);
 
    arm_height_control.addChild(arm_height);
-   
+  
+//Ramie (wysuwanie) 
   arm_width_control.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
   arm_width_control3d.setTranslation(new Vector3d(0, 1.55, 0));
   arm_width_control3d.setRotation(new AxisAngle4f(0.0f, 0.0f, 0.0f, 0.0f));
@@ -118,30 +135,44 @@ public class Project_POiG extends Applet implements KeyListener {
   
   arm_height_control.addChild(arm_width_control);
   base.addChild( arm_height_control);
-  objRoot.addChild(base);
+  
   
   //Swiatlo
   //-------------------------------
   PointLight lp = new PointLight();
-  lp=createPointLight(0.4f, 0.8f, 0.8f,   -4f, 3f, -17f,   5.0f, 0f, 30f);
+  lp=createPointLight(0.5f, 1f, 1f,   -4f, 7f, 3f,   5.0f, 0f, 30f);
   
- //-----
- //Sfera w zrodle swiatla punktowego
-  Point3f point_l = new Point3f();
-  lp.getPosition(point_l);
-  sph_tr.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-  sph_tr_3d.setTranslation(new Vector3f(point_l.x, point_l.y, point_l.z));
-  sph_tr.setTransform(sph_tr_3d);
-  
-  Sphere sph1 = new Sphere(0.3f, base_ap);
-  sph_tr.addChild(sph1);
-  objRoot.addChild(sph_tr);
-  //------
-  
-  objRoot.addChild(lp);//sw punktowe
-  objRoot.addChild(createAmbientLight(0.5f, 1f, 1f));//sw ambient
-  //-------------------------------
+ 
+    //Sfera w zrodle swiatla punktowego
+    //-----
+    Point3f point_l = new Point3f();
+    lp.getPosition(point_l);
+    sph_tr.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+    sph_tr_3d.setTranslation(new Vector3f(point_l.x, point_l.y, point_l.z));
+    sph_tr.setTransform(sph_tr_3d);
 
+    Sphere sph1 = new Sphere(0.3f, base_ap);
+    sph_tr.addChild(sph1);
+    ground.addChild(sph_tr);
+    //------
+  
+  ground.addChild(lp);//sw punktowe
+  objRoot.addChild(createAmbientLight(0.5f, 1f, 1f));//sw ambient 0.5f, 1f, 1f     100f, 200f, 200f    1.1f, 2.2f, 2.2f  
+  
+  //-------------------------------
+  
+  
+  MouseRotate myMouseRotate = new MouseRotate();
+        myMouseRotate.setTransformGroup(ground);
+        myMouseRotate.setSchedulingBounds(new BoundingSphere());
+        objRoot.addChild(myMouseRotate);
+
+        MouseWheelZoom myMouseZoom = new MouseWheelZoom();
+        myMouseZoom.setTransformGroup(universe.getViewingPlatform().getViewPlatformTransform());
+        myMouseZoom.setSchedulingBounds(new BoundingSphere());
+        objRoot.addChild(myMouseZoom);
+        
+        
   objRoot.compile();
 
   return objRoot;
