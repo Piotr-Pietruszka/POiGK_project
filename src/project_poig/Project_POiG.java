@@ -38,6 +38,22 @@ public class Project_POiG extends Applet implements KeyListener {
  private Transform3D    arm_width_control3d = new Transform3D();
  private Transform3D arm_width_control3d_step = new Transform3D();
  
+ //=====================================
+ //obiekt do przenoszenia
+  private TransformGroup  sphere_object = new TransformGroup();
+  private Transform3D  sphere_object_tr3d = new Transform3D();
+  
+  private TransformGroup  sphere_object_ch = new TransformGroup();
+  private Transform3D  sphere_object_tr3d_ch = new Transform3D();
+  
+  private Transform3D  tr1 = new Transform3D();
+  private Transform3D  tr2 = new Transform3D();
+  private Transform3D  tr3 = new Transform3D();
+  private Transform3D  tr4 = new Transform3D();
+
+  private BranchGroup element;
+  private boolean picked_up = false;
+ //===================================
  private Matrix4d matrix = new Matrix4d();
  
  private float height = 0.0f;
@@ -122,6 +138,10 @@ public class Project_POiG extends Applet implements KeyListener {
   
 //Ramie (wysuwanie) 
   arm_width_control.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+  arm_width_control.setCapability(TransformGroup.ALLOW_CHILDREN_WRITE);
+  arm_width_control.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
+  arm_width_control.setCapability(TransformGroup.ALLOW_CHILDREN_EXTEND);
+  
   arm_width_control3d.setTranslation(new Vector3d(0, 1.55, 0));
   arm_width_control3d.setRotation(new AxisAngle4f(0.0f, 0.0f, 0.0f, 0.0f));
   arm_width_control3d.setScale(1);
@@ -171,8 +191,43 @@ public class Project_POiG extends Applet implements KeyListener {
         myMouseZoom.setTransformGroup(universe.getViewingPlatform().getViewPlatformTransform());
         myMouseZoom.setSchedulingBounds(new BoundingSphere());
         objRoot.addChild(myMouseZoom);
+  
         
-        
+  element = new BranchGroup();
+  element.setCapability(element.ALLOW_DETACH);
+  element.setCapability(element.ALLOW_CHILDREN_WRITE);
+  element.setCapability(element.ALLOW_CHILDREN_READ);
+  
+  Sphere sph2 = new Sphere(0.8f, base_ap); 
+  element.addChild(sph2);
+  sphere_object.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+  sphere_object.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+  sphere_object.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+         
+  sphere_object.setCapability(TransformGroup.ALLOW_CHILDREN_WRITE);
+  sphere_object.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
+  sphere_object.setCapability(TransformGroup.ALLOW_CHILDREN_EXTEND);
+  
+  
+  
+          
+  sphere_object.addChild(element);
+  sphere_object_tr3d.setTranslation(new Vector3f(1.5f, 0.8f, 0f));
+  sphere_object.setTransform(sphere_object_tr3d);
+  ground.addChild(sphere_object);
+  
+  //----------
+  sphere_object_ch.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+  sphere_object_ch.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+  sphere_object_ch.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+  sphere_object_ch.setCapability(TransformGroup.ALLOW_CHILDREN_WRITE);
+  sphere_object_ch.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
+  sphere_object_ch.setCapability(TransformGroup.ALLOW_CHILDREN_EXTEND);
+  
+  sphere_object_tr3d_ch.setTranslation(new Vector3f(0f, 2f, 0f));
+  sphere_object_ch.setTransform(sphere_object_tr3d_ch);
+  arm_width_control.addChild(sphere_object_ch);
+  
   objRoot.compile();
 
   return objRoot;
@@ -212,7 +267,57 @@ private Light createAmbientLight(float r, float g, float b) {
 
  public void keyTyped(KeyEvent e) {
   char key = e.getKeyChar();
-
+  if (key == 'p')
+  {
+      if(!picked_up)
+      {
+          sphere_object.removeChild(element);
+          sphere_object_ch.addChild(element);
+          picked_up = !picked_up;
+      }
+      else
+      {
+          sphere_object_ch.removeChild(element);//usuniecie przenoszonego elementu
+          
+          // polozenie chwytaka - zdobycie informacji
+          base.getTransform(tr1);
+          arm_height_control.getTransform(tr2);
+          arm_width_control.getTransform(tr3);
+          sphere_object_ch.getTransform(tr4);
+          
+          //ustawienie transformacji dajacej polozenie chwytaka
+          sphere_object_tr3d.setIdentity();
+          sphere_object_tr3d.mul(tr1);
+          sphere_object_tr3d.mul(tr2);
+          sphere_object_tr3d.mul(tr3);
+          sphere_object_tr3d.mul(tr4);
+          
+          //Ustawienie nowego polozenia kulki po opadnieciu
+          Vector3f falling1 = new Vector3f();//przesunięcie arm_height_control wzgledem polozenia poczatkowego 
+                                             //- potrzenbe tylko by wiedziec o ile opuscic
+          tr2.get(falling1);//translacja arm_heigt_control
+          
+          //setTranslation nadpisuje stary wektor translacji, wiec dajemy nowy (falling2)
+          Vector3f falling2 = new Vector3f();//laczne przesuniecie wzgledem srodka podloza
+          Matrix4f m4 = new Matrix4f();
+          sphere_object_tr3d.get(m4);
+          
+          falling2.x = m4.m03;//ustawienie wartosci przesuniec x, y, z
+          falling2.y = m4.m13;
+          falling2.z = m4.m23;
+          falling2.y += -falling1.y -base_height/2 + 0.8f;//uaktualnienie przesuniecia w y (pion)
+                         // o spadek na ziemie -base_height/2  i promien kuli
+                                                           
+          sphere_object_tr3d.setTranslation(falling2);//przesuniecie kuli do porzadanego miejca
+          sphere_object.setTransform(sphere_object_tr3d);
+          sphere_object.addChild(element);//dodanie kuli do transformgroupa zwiazanego z ziemia
+          
+          picked_up = !picked_up;
+      }
+      
+      //ground.removeChild(sphere_object);
+      //objRoot.removechild()
+  }
   if (key == 'z') {
    base3dstep.rotY(Math.PI / 32);
    base.getTransform(base3d);
