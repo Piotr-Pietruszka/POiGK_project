@@ -18,6 +18,8 @@ import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 import com.sun.j3d.utils.geometry.Cylinder;
 import com.sun.j3d.utils.geometry.Sphere;
+import javax.media.j3d.WakeupOnCollisionEntry;
+import javax.media.j3d.WakeupOnCollisionExit;
 public class Project_POiG extends Applet implements KeyListener {
 
  private SimpleUniverse universe = null;
