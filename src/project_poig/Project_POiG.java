@@ -55,6 +55,7 @@ public class Project_POiG extends Applet implements KeyListener {
   private Transform3D  tr2 = new Transform3D();
   private Transform3D  tr3 = new Transform3D();
   private Transform3D  tr4 = new Transform3D();
+  private Transform3D  tr5 = new Transform3D();
 
   private BranchGroup element;
   private boolean picked_up = false;
@@ -148,7 +149,6 @@ public class Project_POiG extends Applet implements KeyListener {
 //Ramie (wysuwanie) 
   arm_width_control.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
   arm_width_control.setCapability(TransformGroup.ALLOW_CHILDREN_WRITE);
-  arm_width_control.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
   arm_width_control.setCapability(TransformGroup.ALLOW_CHILDREN_EXTEND);
   
   arm_width_control3d.setTranslation(new Vector3d(0, 1.55, 0));
@@ -160,7 +160,7 @@ public class Project_POiG extends Applet implements KeyListener {
   Box arm_width = new Box(0.2f,1f,0.3f, arm_width_ap);
   
   magnes.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-  magnes3d.setTranslation(new Vector3d(0, 1, 0));
+  magnes3d.setTranslation(new Vector3f(0f, 1f, 0f));
   magnes3d.setRotation(new AxisAngle4f(0.0f, 0.0f, 0.0f, 0.0f));
   magnes3d.setScale(1);
   magnes.setTransform(magnes3d);
@@ -212,15 +212,11 @@ public class Project_POiG extends Applet implements KeyListener {
   element = new BranchGroup();
   element.setCapability(element.ALLOW_DETACH);
   element.setCapability(element.ALLOW_CHILDREN_WRITE);
-  element.setCapability(element.ALLOW_CHILDREN_READ);
   
   Sphere sph2 = new Sphere(sph_radius, base_ap); 
   element.addChild(sph2);
   sphere_object.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-  sphere_object.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-         
   sphere_object.setCapability(TransformGroup.ALLOW_CHILDREN_WRITE);
-  sphere_object.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
   sphere_object.setCapability(TransformGroup.ALLOW_CHILDREN_EXTEND);
   
   
@@ -250,7 +246,7 @@ public class Project_POiG extends Applet implements KeyListener {
 
  private Appearance createAppearance(Color3f color) {
   Appearance ap = new Appearance();
-  Material mat = new Material(new Color3f(0.1F,0.1f,0),new Color3f (0,0,0.1f),new Color3f (1,1,1), new Color3f(0,3f,3f), 50);
+  Material mat = new Material(new Color3f(0.4f, 0.2f, 0.4f),new Color3f (0,0,0.1f),new Color3f (1,1,1), new Color3f(0f,50f,50f), 50);
   mat.setSpecularColor(color);
   ap.setMaterial(mat);
   
@@ -285,9 +281,36 @@ private Light createAmbientLight(float r, float g, float b) {
   {
       if(!picked_up)
       {
-          sphere_object.removeChild(element);
-          sphere_object_ch.addChild(element);
-          picked_up = !picked_up;
+          
+          sphere_object.getTransform(tr5);
+          
+          base.getTransform(tr1);
+          arm_height_control.getTransform(tr2);
+          arm_width_control.getTransform(tr3);
+          magnes.getTransform(tr4);
+          
+          sphere_object_tr3d.setIdentity();
+          sphere_object_tr3d.mul(tr1);
+          sphere_object_tr3d.mul(tr2);
+          sphere_object_tr3d.mul(tr3);
+          sphere_object_tr3d.mul(tr4);
+          
+          
+          Matrix4f m4_chwytak = new Matrix4f();
+          sphere_object_tr3d.get(m4_chwytak);
+          
+          Matrix4f m4_sphere = new Matrix4f();
+          tr5.get(m4_sphere);
+          
+          
+          if(Math.pow(m4_sphere.m03-m4_chwytak.m03 ,2) + Math.pow(m4_sphere.m13-m4_chwytak.m13, 2) 
+                  +Math.pow(m4_sphere.m23-m4_chwytak.m23, 2)  <  1.5)
+          {
+            sphere_object.removeChild(element);
+            sphere_object_ch.addChild(element);
+            picked_up = !picked_up;
+          }
+          
       }
       else
       {
@@ -328,9 +351,6 @@ private Light createAmbientLight(float r, float g, float b) {
           
           picked_up = !picked_up;
       }
-      
-      //ground.removeChild(sphere_object);
-      //objRoot.removechild()
   }
   if (key == 'z') {
    base3dstep.rotY(Math.PI / 32);
