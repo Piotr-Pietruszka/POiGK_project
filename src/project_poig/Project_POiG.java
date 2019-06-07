@@ -20,6 +20,10 @@ import com.sun.j3d.utils.geometry.Cylinder;
 import com.sun.j3d.utils.geometry.Sphere;
 import javax.media.j3d.WakeupOnCollisionEntry;
 import javax.media.j3d.WakeupOnCollisionExit;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 public class Project_POiG extends Applet implements KeyListener {
 
  private SimpleUniverse universe = null;
@@ -64,6 +68,8 @@ public class Project_POiG extends Applet implements KeyListener {
  
  private float height = 0.0f;
  private float radius = 0.0f;
+ private Vector<Integer> steps = new Vector();
+ private boolean recording = false;
   
  private float base_height = 5;
  private float sph_radius = 0.8f;
@@ -269,6 +275,68 @@ private Light createAmbientLight(float r, float g, float b) {
       ambientLight.setInfluencingBounds(new BoundingSphere(new Point3d(-5.0f, 0f, 0f), 10000.0));
       return ambientLight;
  }
+//-----------sterowanie obiektem
+private void move(int a){
+    if(a==1)
+    {
+     base3dstep.rotY(Math.PI / 32);
+     base.getTransform(base3d);
+     base3d.get(matrix);
+     base3d.setTranslation(new Vector3d(0.0, 0.0, 0.0));
+     base3d.mul(base3dstep);
+     base3d.setTranslation(new Vector3d(matrix.m03, matrix.m13, matrix.m23));
+     base.setTransform(base3d);
+    }
+    if(a==-1)
+    {
+      base3dstep.rotY(-Math.PI / 32);
+      base.getTransform(base3d);
+      base3d.get(matrix);
+      base3d.setTranslation(new Vector3d(0.0, 0.0, 0.0));
+      base3d.mul(base3dstep);
+      base3d.setTranslation(new Vector3d(matrix.m03, matrix.m13, matrix.m23));
+      base.setTransform(base3d);
+    }
+    if(a==2)
+    {
+        height+=0.1;
+       arm_height_control3d_step.setTranslation(new Vector3d(0.1, 0, 0.0));
+       arm_height_control.getTransform( arm_height_control3d);
+       arm_height_control3d.get(matrix);
+       arm_height_control3d.mul( arm_height_control3d_step);
+       arm_height_control.setTransform( arm_height_control3d);
+    }
+    if(a==-2)
+    {
+        height-=0.1;
+        arm_height_control3d_step.setTranslation(new Vector3d(-0.1, 0, 0.0));
+        arm_height_control.getTransform( arm_height_control3d);
+        arm_height_control3d.get(matrix);
+        arm_height_control3d.mul( arm_height_control3d_step);
+        arm_height_control.setTransform( arm_height_control3d);
+    }
+    if(a==3)
+    {
+     radius += 0.1;
+        arm_width_control3d_step.setTranslation(new Vector3d(0, 0.1, 0.0));
+        arm_width_control.getTransform( arm_width_control3d);
+        arm_width_control3d.get(matrix);
+        arm_width_control3d.mul( arm_width_control3d_step);
+        arm_width_control.setTransform( arm_width_control3d);
+    }
+    if(a==-3)
+    {
+        radius -= 0.1;
+        Vector3f position = new Vector3f();
+        arm_width_control3d.get(position);
+        arm_width_control3d_step .setTranslation(new Vector3d(0, -0.1, 0.0));
+        arm_width_control .getTransform( arm_width_control3d);
+        arm_width_control3d.get(matrix);
+        arm_width_control3d.mul( arm_width_control3d_step);
+        arm_width_control.setTransform( arm_width_control3d);
+    }
+
+ }
 
  public static void main(String[] args) {
   Project_POiG applet = new Project_POiG();
@@ -353,34 +421,23 @@ private Light createAmbientLight(float r, float g, float b) {
       }
   }
   if (key == 'z') {
-   base3dstep.rotY(Math.PI / 32);
-   base.getTransform(base3d);
-   base3d.get(matrix);
-   base3d.setTranslation(new Vector3d(0.0, 0.0, 0.0));
-   base3d.mul(base3dstep);
-   base3d.setTranslation(new Vector3d(matrix.m03, matrix.m13, matrix.m23));
-   base.setTransform(base3d);
+   move(1);
+   if (recording)
+       steps.add(1);
   }
 
   if (key == 'x') {
-   base3dstep.rotY(-Math.PI / 32);
-   base.getTransform(base3d);
-   base3d.get(matrix);
-   base3d.setTranslation(new Vector3d(0.0, 0.0, 0.0));
-   base3d.mul(base3dstep);
-   base3d.setTranslation(new Vector3d(matrix.m03, matrix.m13, matrix.m23));
-   base.setTransform(base3d);
+   move(-1);
+    if (recording)
+       steps.add(-1);
   }
 
   if (key == 'w') {
       if(height < 2.2)
       {
-       height+=0.1;
-       arm_height_control3d_step.setTranslation(new Vector3d(0.1, 0, 0.0));
-       arm_height_control.getTransform( arm_height_control3d);
-       arm_height_control3d.get(matrix);
-       arm_height_control3d.mul( arm_height_control3d_step);
-       arm_height_control.setTransform( arm_height_control3d);
+       move(2);
+        if (recording)
+       steps.add(2);
       }
    
   }
@@ -388,51 +445,49 @@ private Light createAmbientLight(float r, float g, float b) {
   if (key == 's') {
        if(height > -1.7)
       {
-        height-=0.1;
-        arm_height_control3d_step.setTranslation(new Vector3d(-0.1, 0, 0.0));
-        arm_height_control.getTransform( arm_height_control3d);
-        arm_height_control3d.get(matrix);
-        arm_height_control3d.mul( arm_height_control3d_step);
-        arm_height_control.setTransform( arm_height_control3d);
+        move(-2);
+        if (recording)
+       steps.add(-2);
       }
   }
   if (key == 'd') {
       if(radius < 1.4)
       {
-        radius += 0.1;
-        arm_width_control3d_step.setTranslation(new Vector3d(0, 0.1, 0.0));
-        arm_width_control.getTransform( arm_width_control3d);
-        arm_width_control3d.get(matrix);
-        arm_width_control3d.mul( arm_width_control3d_step);
-        arm_width_control.setTransform( arm_width_control3d);
+        move(3);
+        if (recording)
+         steps.add(3);
       }
+       
   }
    if (key == 'a') {
     if(radius > -0.4)
       {
-        radius -= 0.1;
-        Vector3f position = new Vector3f();
-        arm_width_control3d.get(position);
-        arm_width_control3d_step .setTranslation(new Vector3d(0, -0.1, 0.0));
-        arm_width_control .getTransform( arm_width_control3d);
-        arm_width_control3d.get(matrix);
-        arm_width_control3d.mul( arm_width_control3d_step);
-        arm_width_control.setTransform( arm_width_control3d);
+        move(-3);
+         if (recording)
+       steps.add(-3);
       }
-    if (key == 'r')
-    {
-       universe = new SimpleUniverse(canvas);
-
-        canvas.addKeyListener(this);
-
-        universe.getViewingPlatform().setNominalViewingTransform();
-        universe.getViewer().getView().setBackClipDistance(20.0);
-  
+   }
+    if (key == 'k'){
+        recording = ! recording;
     }
-  }
-  
-
- 
+    
+    if (key == 'l'&& !recording){
+        
+        for(int k = steps.size();k>0;k--)
+        {
+            move(-steps.get(k-1));
+        }
+        for(int k = 0;k<steps.size()-1;k++)
+        {
+            move(steps.get(k));
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Project_POiG.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        steps.removeAllElements ();
+    }
 
  }
 
