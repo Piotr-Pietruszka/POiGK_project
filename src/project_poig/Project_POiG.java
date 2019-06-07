@@ -37,6 +37,9 @@ public class Project_POiG extends Applet implements KeyListener {
  private TransformGroup  arm_width_control = new TransformGroup();
  private Transform3D    arm_width_control3d = new Transform3D();
  private Transform3D arm_width_control3d_step = new Transform3D();
+ //======  magnes
+ private TransformGroup  magnes = new TransformGroup();
+ private Transform3D    magnes3d = new Transform3D();
  
  //=====================================
  //obiekt do przenoszenia
@@ -60,12 +63,14 @@ public class Project_POiG extends Applet implements KeyListener {
  private float radius = 0.0f;
   
  private float base_height = 5;
+ private float sph_radius = 0.8f;
  Cylinder arm_height = null;
  
 //-------------
  //sfera w zrodel swaitla
  private TransformGroup sph_tr = new TransformGroup();
  private Transform3D sph_tr_3d = new Transform3D();
+ 
  //------------
  
  
@@ -88,7 +93,7 @@ public class Project_POiG extends Applet implements KeyListener {
  private BranchGroup createSceneGraph() {
   BranchGroup objRoot = new BranchGroup();
 
-  BoundingSphere bounds = new BoundingSphere(new Point3d(), 10000.0);
+  //BoundingSphere bounds = new BoundingSphere(new Point3d(), 10000.0);
  
   objRoot.addChild(createPrimitives());
 
@@ -104,7 +109,9 @@ public class Project_POiG extends Applet implements KeyListener {
   ground.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
   ground_position.setTranslation(new Vector3d(0.0, -1.0, -20.0));
   ground.setTransform(ground_position);
-  Appearance ground_ap = createAppearance(new Color3f(255f, 255f, 255f));
+  Appearance ground_ap = createAppearance(new Color3f(1f, 3f, 1f));
+  Material mat = new Material(new Color3f(0.1f,0,0.1f),new Color3f (0.1f,0,0.1f),new Color3f (1,1,1), new Color3f(3f,0,5f), 40);
+  ground_ap.setMaterial(mat);
   Cylinder ground_cylinder = new Cylinder(8.25f, 0.03f, ground_ap);
   ground.addChild(ground_cylinder);
   objRoot.addChild(ground);
@@ -149,10 +156,18 @@ public class Project_POiG extends Applet implements KeyListener {
   Appearance arm_width_ap = createAppearance(new Color3f(138f, 127f, 128f));
 
   Box arm_width = new Box(0.2f,1f,0.3f, arm_width_ap);
-
-  arm_width_control.addChild(arm_width);
-
   
+  magnes.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+  magnes3d.setTranslation(new Vector3d(0, 1, 0));
+  magnes3d.setRotation(new AxisAngle4f(0.0f, 0.0f, 0.0f, 0.0f));
+  magnes3d.setScale(1);
+  magnes.setTransform(magnes3d);
+  
+  Cylinder magnes_s = new Cylinder (0.5f,0.2f,arm_width_ap);
+  
+  magnes.addChild(magnes_s);
+  arm_width.addChild(magnes);
+  arm_width_control.addChild(arm_width);
   arm_height_control.addChild(arm_width_control);
   base.addChild( arm_height_control);
   
@@ -181,7 +196,6 @@ public class Project_POiG extends Applet implements KeyListener {
   
   //-------------------------------
   
-  
   MouseRotate myMouseRotate = new MouseRotate();
         myMouseRotate.setTransformGroup(ground);
         myMouseRotate.setSchedulingBounds(new BoundingSphere());
@@ -198,9 +212,8 @@ public class Project_POiG extends Applet implements KeyListener {
   element.setCapability(element.ALLOW_CHILDREN_WRITE);
   element.setCapability(element.ALLOW_CHILDREN_READ);
   
-  Sphere sph2 = new Sphere(0.8f, base_ap); 
+  Sphere sph2 = new Sphere(sph_radius, base_ap); 
   element.addChild(sph2);
-  sphere_object.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
   sphere_object.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
   sphere_object.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
          
@@ -212,19 +225,18 @@ public class Project_POiG extends Applet implements KeyListener {
   
           
   sphere_object.addChild(element);
-  sphere_object_tr3d.setTranslation(new Vector3f(1.5f, 0.8f, 0f));
+  sphere_object_tr3d.setTranslation(new Vector3f(5f, sph_radius, 0f));
   sphere_object.setTransform(sphere_object_tr3d);
   ground.addChild(sphere_object);
   
   //----------
-  sphere_object_ch.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
   sphere_object_ch.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
   sphere_object_ch.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
   sphere_object_ch.setCapability(TransformGroup.ALLOW_CHILDREN_WRITE);
   sphere_object_ch.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
   sphere_object_ch.setCapability(TransformGroup.ALLOW_CHILDREN_EXTEND);
   
-  sphere_object_tr3d_ch.setTranslation(new Vector3f(0f, 2f, 0f));
+  sphere_object_tr3d_ch.setTranslation(new Vector3f(0f, 1.9f, 0f));
   sphere_object_ch.setTransform(sphere_object_tr3d_ch);
   arm_width_control.addChild(sphere_object_ch);
   
@@ -236,7 +248,7 @@ public class Project_POiG extends Applet implements KeyListener {
 
  private Appearance createAppearance(Color3f color) {
   Appearance ap = new Appearance();
-  Material mat = new Material();
+  Material mat = new Material(new Color3f(0.1F,0.1f,0),new Color3f (0,0,0.1f),new Color3f (1,1,1), new Color3f(0,3f,3f), 50);
   mat.setSpecularColor(color);
   ap.setMaterial(mat);
   
@@ -305,7 +317,7 @@ private Light createAmbientLight(float r, float g, float b) {
           falling2.x = m4.m03;//ustawienie wartosci przesuniec x, y, z
           falling2.y = m4.m13;
           falling2.z = m4.m23;
-          falling2.y += -falling1.y -base_height/2 + 0.8f;//uaktualnienie przesuniecia w y (pion)
+          falling2.y += -falling1.y -base_height/2 + sph_radius;//uaktualnienie przesuniecia w y (pion)
                          // o spadek na ziemie -base_height/2  i promien kuli
                                                            
           sphere_object_tr3d.setTranslation(falling2);//przesuniecie kuli do porzadanego miejca
@@ -352,7 +364,7 @@ private Light createAmbientLight(float r, float g, float b) {
   }
 
   if (key == 's') {
-       if(height > -2.2)
+       if(height > -1.7)
       {
         height-=0.1;
         arm_height_control3d_step.setTranslation(new Vector3d(-0.1, 0, 0.0));
@@ -363,7 +375,7 @@ private Light createAmbientLight(float r, float g, float b) {
       }
   }
   if (key == 'd') {
-      if(radius < 1.5)
+      if(radius < 1.4)
       {
         radius += 0.1;
         arm_width_control3d_step.setTranslation(new Vector3d(0, 0.1, 0.0));
@@ -374,7 +386,7 @@ private Light createAmbientLight(float r, float g, float b) {
       }
   }
    if (key == 'a') {
-    if(radius > -0.5)
+    if(radius > -0.4)
       {
         radius -= 0.1;
         Vector3f position = new Vector3f();
@@ -385,6 +397,16 @@ private Light createAmbientLight(float r, float g, float b) {
         arm_width_control3d.mul( arm_width_control3d_step);
         arm_width_control.setTransform( arm_width_control3d);
       }
+    if (key == 'r')
+    {
+       universe = new SimpleUniverse(canvas);
+
+        canvas.addKeyListener(this);
+
+        universe.getViewingPlatform().setNominalViewingTransform();
+        universe.getViewer().getView().setBackClipDistance(20.0);
+  
+    }
   }
   
 
