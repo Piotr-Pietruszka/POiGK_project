@@ -21,7 +21,6 @@ import com.sun.j3d.utils.geometry.Sphere;
 import javax.media.j3d.WakeupOnCollisionEntry;
 import javax.media.j3d.WakeupOnCollisionExit;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 public class Project_POiG extends Applet implements KeyListener {
@@ -69,7 +68,8 @@ public class Project_POiG extends Applet implements KeyListener {
  private float height = 0.0f;
  private float radius = 0.0f;
  private Vector<Integer> steps = new Vector();
- private boolean recording = false;
+ private boolean recording = false;            //odpowiada za nagrywanie
+ private boolean playing = false;               //odpowiada za odtwarzanie
   
  private float base_height = 5;
  private float sph_radius = 0.8f;
@@ -101,10 +101,7 @@ public class Project_POiG extends Applet implements KeyListener {
 
  private BranchGroup createSceneGraph() {
   BranchGroup objRoot = new BranchGroup();
-
-  //BoundingSphere bounds = new BoundingSphere(new Point3d(), 10000.0);
- 
-  objRoot.addChild(createPrimitives());
+    objRoot.addChild(createPrimitives());
 
   return objRoot;
  }
@@ -112,8 +109,7 @@ public class Project_POiG extends Applet implements KeyListener {
  private BranchGroup createPrimitives() {
 
   BranchGroup objRoot = new BranchGroup();
-  
-  
+    
   //Podstawa
   ground.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
   ground_position.setTranslation(new Vector3d(0.0, -1.0, -20.0));
@@ -275,111 +271,105 @@ private Light createAmbientLight(float r, float g, float b) {
       ambientLight.setInfluencingBounds(new BoundingSphere(new Point3d(-5.0f, 0f, 0f), 10000.0));
       return ambientLight;
  }
-//-----------sterowanie obiektem
-private void move(int a){
-    if(a==1)
+
+//====================================robot control
+
+private void move(int key){
+    switch (key){
+        case 1:       
     {
-     base3dstep.rotY(Math.PI / 32);
-     base.getTransform(base3d);
-     base3d.get(matrix);
-     base3d.setTranslation(new Vector3d(0.0, 0.0, 0.0));
-     base3d.mul(base3dstep);
-     base3d.setTranslation(new Vector3d(matrix.m03, matrix.m13, matrix.m23));
-     base.setTransform(base3d);
+        base3dstep.rotY(Math.PI / 32);
+        base.getTransform(base3d);
+        base3d.get(matrix);
+        base3d.setTranslation(new Vector3d(0.0, 0.0, 0.0));
+        base3d.mul(base3dstep);
+        base3d.setTranslation(new Vector3d(matrix.m03, matrix.m13, matrix.m23));
+        base.setTransform(base3d);
+        break;
     }
-    if(a==-1)
-    {
-      base3dstep.rotY(-Math.PI / 32);
-      base.getTransform(base3d);
-      base3d.get(matrix);
-      base3d.setTranslation(new Vector3d(0.0, 0.0, 0.0));
-      base3d.mul(base3dstep);
-      base3d.setTranslation(new Vector3d(matrix.m03, matrix.m13, matrix.m23));
-      base.setTransform(base3d);
+        case -1:{
+        base3dstep.rotY(-Math.PI / 32);
+        base.getTransform(base3d);
+        base3d.get(matrix);
+        base3d.setTranslation(new Vector3d(0.0, 0.0, 0.0));
+        base3d.mul(base3dstep);
+        base3d.setTranslation(new Vector3d(matrix.m03, matrix.m13, matrix.m23));
+        base.setTransform(base3d);
+        break;
     }
-    if(a==2)
-    {
-        height+=0.1;
-       arm_height_control3d_step.setTranslation(new Vector3d(0.1, 0, 0.0));
-       arm_height_control.getTransform( arm_height_control3d);
-       arm_height_control3d.get(matrix);
-       arm_height_control3d.mul( arm_height_control3d_step);
-       arm_height_control.setTransform( arm_height_control3d);
+        case 2:{
+            height+=0.1;
+           arm_height_control3d_step.setTranslation(new Vector3d(0.1, 0, 0.0));
+           arm_height_control.getTransform( arm_height_control3d);
+           arm_height_control3d.get(matrix);
+           arm_height_control3d.mul( arm_height_control3d_step);
+           arm_height_control.setTransform( arm_height_control3d);
+           break;
     }
-    if(a==-2)
-    {
-        height-=0.1;
-        arm_height_control3d_step.setTranslation(new Vector3d(-0.1, 0, 0.0));
-        arm_height_control.getTransform( arm_height_control3d);
-        arm_height_control3d.get(matrix);
-        arm_height_control3d.mul( arm_height_control3d_step);
-        arm_height_control.setTransform( arm_height_control3d);
+        case -2:{
+            height-=0.1;
+            arm_height_control3d_step.setTranslation(new Vector3d(-0.1, 0, 0.0));
+            arm_height_control.getTransform( arm_height_control3d);
+            arm_height_control3d.get(matrix);
+            arm_height_control3d.mul( arm_height_control3d_step);
+            arm_height_control.setTransform( arm_height_control3d);
+            break;
     }
-    if(a==3)
-    {
-     radius += 0.1;
-        arm_width_control3d_step.setTranslation(new Vector3d(0, 0.1, 0.0));
-        arm_width_control.getTransform( arm_width_control3d);
-        arm_width_control3d.get(matrix);
-        arm_width_control3d.mul( arm_width_control3d_step);
-        arm_width_control.setTransform( arm_width_control3d);
+        case 3:{
+            radius += 0.1;
+           arm_width_control3d_step.setTranslation(new Vector3d(0, 0.1, 0.0));
+           arm_width_control.getTransform( arm_width_control3d);
+           arm_width_control3d.get(matrix);
+           arm_width_control3d.mul( arm_width_control3d_step);
+           arm_width_control.setTransform( arm_width_control3d);
+           break;
     }
-    if(a==-3)
-    {
-        radius -= 0.1;
-        Vector3f position = new Vector3f();
-        arm_width_control3d.get(position);
-        arm_width_control3d_step .setTranslation(new Vector3d(0, -0.1, 0.0));
-        arm_width_control .getTransform( arm_width_control3d);
-        arm_width_control3d.get(matrix);
-        arm_width_control3d.mul( arm_width_control3d_step);
-        arm_width_control.setTransform( arm_width_control3d);
+        case -3:{
+            radius -= 0.1;
+            Vector3f position = new Vector3f();
+            arm_width_control3d.get(position);
+            arm_width_control3d_step .setTranslation(new Vector3d(0, -0.1, 0.0));
+            arm_width_control .getTransform( arm_width_control3d);
+            arm_width_control3d.get(matrix);
+            arm_width_control3d.mul( arm_width_control3d_step);
+            arm_width_control.setTransform( arm_width_control3d);
+            break;
     }
 
- }
+        case 4 :
+        case -4:{
+          if(!picked_up)
+          {       
+            sphere_object.getTransform(tr5);
 
- public static void main(String[] args) {
-  Project_POiG applet = new Project_POiG();
-  Frame frame = new MainFrame(applet, 800, 600);
- }
+            base.getTransform(tr1);
+            arm_height_control.getTransform(tr2);
+            arm_width_control.getTransform(tr3);
+            magnes.getTransform(tr4);
 
- public void keyTyped(KeyEvent e) {
-  char key = e.getKeyChar();
-  if (key == 'p')
-  {
-      if(!picked_up)
-      {
-          
-          sphere_object.getTransform(tr5);
-          
-          base.getTransform(tr1);
-          arm_height_control.getTransform(tr2);
-          arm_width_control.getTransform(tr3);
-          magnes.getTransform(tr4);
-          
-          sphere_object_tr3d.setIdentity();
-          sphere_object_tr3d.mul(tr1);
-          sphere_object_tr3d.mul(tr2);
-          sphere_object_tr3d.mul(tr3);
-          sphere_object_tr3d.mul(tr4);
+            sphere_object_tr3d.setIdentity();
+            sphere_object_tr3d.mul(tr1);
+            sphere_object_tr3d.mul(tr2);
+            sphere_object_tr3d.mul(tr3);
+            sphere_object_tr3d.mul(tr4);
+
+
+            Matrix4f m4_chwytak = new Matrix4f();
+            sphere_object_tr3d.get(m4_chwytak);
+
+            Matrix4f m4_sphere = new Matrix4f();
+            tr5.get(m4_sphere);
           
           
-          Matrix4f m4_chwytak = new Matrix4f();
-          sphere_object_tr3d.get(m4_chwytak);
-          
-          Matrix4f m4_sphere = new Matrix4f();
-          tr5.get(m4_sphere);
-          
-          
-          if(Math.pow(m4_sphere.m03-m4_chwytak.m03 ,2) + Math.pow(m4_sphere.m13-m4_chwytak.m13, 2) 
-                  +Math.pow(m4_sphere.m23-m4_chwytak.m23, 2)  <  1.5)
-          {
-            sphere_object.removeChild(element);
-            sphere_object_ch.addChild(element);
-            picked_up = !picked_up;
-          }
-          
-      }
+            if((Math.pow(m4_sphere.m03-m4_chwytak.m03 ,2) + Math.pow(m4_sphere.m13-m4_chwytak.m13, 2) 
+                    +Math.pow(m4_sphere.m23-m4_chwytak.m23, 2)  <  1.5)||playing)
+            {
+              sphere_object.removeChild(element);
+              sphere_object_ch.addChild(element);
+              picked_up=!picked_up;
+            }
+            break;
+           }  
       else
       {
           sphere_object_ch.removeChild(element);//usuniecie przenoszonego elementu
@@ -416,10 +406,30 @@ private void move(int a){
           sphere_object_tr3d.setTranslation(falling2);//przesuniecie kuli do porzadanego miejca
           sphere_object.setTransform(sphere_object_tr3d);
           sphere_object.addChild(element);//dodanie kuli do transformgroupa zwiazanego z ziemia
-          
-          picked_up = !picked_up;
+          picked_up=!picked_up;
+          break;
+          }
       }
+   default: break;
+   }
+}
+
+////=====================main============================================
+ public static void main(String[] args) {
+  Project_POiG applet = new Project_POiG();
+  Frame frame = new MainFrame(applet, 800, 600);
+ }
+//==============================main======================
+ 
+ public void keyTyped(KeyEvent e) {
+  char key = e.getKeyChar();
+  if (key == 'p')
+  {
+          move(4);
+          if (recording)
+            steps.add(4);
   }
+  
   if (key == 'z') {
    move(1);
    if (recording)
@@ -436,8 +446,8 @@ private void move(int a){
       if(height < 2.2)
       {
        move(2);
-        if (recording)
-       steps.add(2);
+       if (recording)
+            steps.add(2);
       }
    
   }
@@ -468,15 +478,20 @@ private void move(int a){
       }
    }
     if (key == 'k'){
+        //---rozpoczęcie/zakonczenie nagrywania
         recording = ! recording;
+        if(recording)
+            steps.removeAllElements (); //---czyszczenie elementów wektora
     }
     
     if (key == 'l'&& !recording){
-        
+        playing=true;
+        //-----------przywracanie do pozycji sprzed nagrywania
         for(int k = steps.size();k>0;k--)
         {
             move(-steps.get(k-1));
         }
+        //--odtwarzanie ruchu robota 
         for(int k = 0;k<steps.size()-1;k++)
         {
             move(steps.get(k));
@@ -486,11 +501,15 @@ private void move(int a){
                 Logger.getLogger(Project_POiG.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        steps.removeAllElements ();
+        playing=false;
+    }
+    if (key=='r'){
+         ground_position.setTranslation(new Vector3d(0.0, -1.0, -20.0));
+         ground.setTransform(ground_position);
     }
 
  }
-
+ 
  public void keyReleased(KeyEvent e) {
  }
 
