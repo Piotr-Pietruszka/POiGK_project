@@ -115,17 +115,27 @@ public class Project_POiG extends Applet implements KeyListener {
             JButton bt = (JButton)e.getSource();
             if(bt==aktywuj)
             {
-                JOptionPane.showMessageDialog(ref_okno, "Wciśnięto przycisk 1");
+                try{
                 x = Integer.parseInt(wsp_x.getText());
                 y = Integer.parseInt(wsp_y.getText());
                 z = Integer.parseInt(wsp_z.getText());
+                }
+               catch(Exception exception)
+               {
+                JOptionPane.showMessageDialog(ref_okno, "Błędne wartości");
+               }
             }
             else if(bt==aktywuj_p)
             {
-                 JOptionPane.showMessageDialog(ref_okno, "Wciśnięto przycisk 2");
+                try{
                 x = Integer.parseInt(wsp_x.getText());
                 y = Integer.parseInt(wsp_y.getText());
                 z = Integer.parseInt(wsp_z.getText());
+                }
+               catch(Exception exception)
+               {
+                JOptionPane.showMessageDialog(ref_okno, "Błędne wartości");
+               }
             }
         }
 
@@ -149,7 +159,7 @@ public class Project_POiG extends Applet implements KeyListener {
   aktywuj.addActionListener(new ObslugaPrzycisku(ref_okno));
   
   aktywuj_p = new JButton("przemiesc przedmiot");
-  aktywuj.addActionListener(new ObslugaPrzycisku(ref_okno));
+  aktywuj_p.addActionListener(new ObslugaPrzycisku(ref_okno));
   
   p.add(wsp_x_l);
   p.add(wsp_x);
