@@ -18,11 +18,19 @@ import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 import com.sun.j3d.utils.geometry.Cylinder;
 import com.sun.j3d.utils.geometry.Sphere;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.media.j3d.WakeupOnCollisionEntry;
 import javax.media.j3d.WakeupOnCollisionExit;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
 public class Project_POiG extends Applet implements KeyListener {
 
  private SimpleUniverse universe = null;
@@ -81,12 +89,51 @@ public class Project_POiG extends Applet implements KeyListener {
  private Transform3D sph_tr_3d = new Transform3D();
  
  //------------
- 
+   private JButton aktywuj ;
+   private JButton aktywuj_p ;
+   private JTextArea wsp_x = new JTextArea(1,5);
+   private JTextArea wsp_y = new JTextArea(1,5);
+   private JTextArea wsp_z = new JTextArea(1,5);
+   private JLabel wsp_x_l = new JLabel("x : ");
+   private JLabel wsp_y_l = new JLabel("y : ");
+   private JLabel wsp_z_l = new JLabel("z : ");
+   private JFrame ref_okno;
+   private int x,y,z;
+   
+   
+   JPanel p = new JPanel();
+    
+   private class ObslugaPrzycisku implements ActionListener{
+
+       
+
+       ObslugaPrzycisku(JFrame okno){
+            ref_okno = okno;
+       }
+
+       public void actionPerformed(ActionEvent e) {
+            JButton bt = (JButton)e.getSource();
+            if(bt==aktywuj)
+            {
+                JOptionPane.showMessageDialog(ref_okno, "Wciśnięto przycisk 1");
+                x = Integer.parseInt(wsp_x.getText());
+                y = Integer.parseInt(wsp_y.getText());
+                z = Integer.parseInt(wsp_z.getText());
+            }
+            else if(bt==aktywuj_p)
+            {
+                 JOptionPane.showMessageDialog(ref_okno, "Wciśnięto przycisk 2");
+                x = Integer.parseInt(wsp_x.getText());
+                y = Integer.parseInt(wsp_y.getText());
+                z = Integer.parseInt(wsp_z.getText());
+            }
+        }
+
+   }
  
  public Project_POiG() {
   setLayout(new BorderLayout());
   GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
-
   canvas = new Canvas3D(config);
   add("Center", canvas);
   universe = new SimpleUniverse(canvas);
@@ -97,6 +144,24 @@ public class Project_POiG extends Applet implements KeyListener {
   universe.getViewingPlatform().setNominalViewingTransform();
   universe.getViewer().getView().setBackClipDistance(200.0);
   universe.addBranchGraph(scene);
+  
+  aktywuj = new JButton("przemiesc chwytak");
+  aktywuj.addActionListener(new ObslugaPrzycisku(ref_okno));
+  
+  aktywuj_p = new JButton("przemiesc przedmiot");
+  aktywuj.addActionListener(new ObslugaPrzycisku(ref_okno));
+  
+  p.add(wsp_x_l);
+  p.add(wsp_x);
+  p.add(wsp_y_l);
+  p.add(wsp_y);
+  p.add(wsp_z_l);
+  p.add(wsp_z);
+  p.add(aktywuj);
+  p.add(aktywuj_p);
+  
+  
+  add("North", p);
  }
 
  private BranchGroup createSceneGraph() {
@@ -112,7 +177,7 @@ public class Project_POiG extends Applet implements KeyListener {
     
   //Podstawa
   ground.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-  ground_position.setTranslation(new Vector3d(0.0, -1.0, -20.0));
+  ground_position.setTranslation(new Vector3d(0.0, -3.0, -20.0));
   ground.setTransform(ground_position);
   Appearance ground_ap = createAppearance(new Color3f(1f, 3f, 1f));
   Material mat = new Material(new Color3f(0.1f,0,0.1f),new Color3f (0.1f,0,0.1f),new Color3f (1,1,1), new Color3f(3f,0,5f), 40);
@@ -492,7 +557,7 @@ private void move(int key){
             move(-steps.get(k-1));
         }
         //--odtwarzanie ruchu robota 
-        for(int k = 0;k<steps.size()-1;k++)
+        for(int k = 0;k<steps.size();k++)
         {
             move(steps.get(k));
             try {
@@ -504,7 +569,7 @@ private void move(int key){
         playing=false;
     }
     if (key=='r'){
-         ground_position.setTranslation(new Vector3d(0.0, -1.0, -20.0));
+         ground_position.setTranslation(new Vector3d(0, -3.0, -20.0));
          ground.setTransform(ground_position);
     }
 
