@@ -93,6 +93,7 @@ public class Project_POiG extends Applet implements KeyListener{
    private JLabel wsp_y_l = new JLabel("y : ");
    private JLabel wsp_z_l = new JLabel("z : ");
    private JFrame ref_okno;
+
    JPanel p = new JPanel();
 
    //====================================================
@@ -192,6 +193,7 @@ public class Project_POiG extends Applet implements KeyListener{
   
   aktywuj_p = new JButton("przemiesc przedmiot");
   aktywuj_p.addActionListener(new ObslugaPrzycisku(ref_okno));
+
   //dodanie elementow do panelu
   p.add(wsp_x_l);
   p.add(wsp_x);
@@ -478,6 +480,7 @@ private void move(int key){
             falling2.z = m4.m23;
             falling2.y += -falling1.y -base_height/2 + sph_radius;//uaktualnienie przesuniecia w y (pion)
                            // o spadek na ziemie -base_height/2  i promien kuli
+
             sphere_object_tr3d.setTranslation(falling2);//przesuniecie kuli do porzadanego miejca
             sphere_object.setTransform(sphere_object_tr3d);
             sphere_object.addChild(element);//dodanie kuli do transformgroupa zwiazanego z ziemia
@@ -496,6 +499,7 @@ public void move_sphere(double x_des, double z_des){
     sphere_object_tr3d.setTranslation(new Vector3d(x_des, sph_radius, z_des));
     sphere_object.setTransform(sphere_object_tr3d);
 }
+
 
 ////=================================================================
 //MAIN
