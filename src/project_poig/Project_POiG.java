@@ -31,7 +31,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
-public class Project_POiG extends Applet implements KeyListener {
+public class Project_POiG extends Applet implements KeyListener{
 
  private SimpleUniverse universe = null;
  private Canvas3D canvas = null;
@@ -98,9 +98,12 @@ public class Project_POiG extends Applet implements KeyListener {
    private JLabel wsp_y_l = new JLabel("y : ");
    private JLabel wsp_z_l = new JLabel("z : ");
    private JFrame ref_okno;
-   private int x,y,z;
    
+   private double x_desired,y_desired,z_desired;
    
+   private Alpha alphaObserwator = new Alpha(1,300);
+   private RotationInterpolator obracaczObserwatora;
+   private BoundingSphere bounds_gl = new BoundingSphere(new Point3d(0.0, 0.0, 0.0), 100.0);
    JPanel p = new JPanel();
     
    private class ObslugaPrzycisku implements ActionListener{
@@ -115,17 +118,70 @@ public class Project_POiG extends Applet implements KeyListener {
             JButton bt = (JButton)e.getSource();
             if(bt==aktywuj)
             {
-                JOptionPane.showMessageDialog(ref_okno, "Wciśnięto przycisk 1");
-                x = Integer.parseInt(wsp_x.getText());
-                y = Integer.parseInt(wsp_y.getText());
-                z = Integer.parseInt(wsp_z.getText());
+                try{
+                x_desired = Double.parseDouble(wsp_x.getText());
+                y_desired = Double.parseDouble(wsp_y.getText()) - 1.8;
+                z_desired = Double.parseDouble(wsp_z.getText());
+                
+                //obrot
+                base3d.get(matrix);
+                for(int i = 0; i < 100 && (Math.atan2(matrix.m02, matrix.m00) > Math.atan2(z_desired, -x_desired) + Math.PI/32 || 
+                        Math.atan2(matrix.m02, matrix.m00) <  Math.atan2(z_desired, -x_desired) - Math.PI/32); i++)
+                {
+                    move(-1);
+                    Thread.sleep(70);
+                    base3d.get(matrix);
+                }
+                
+                //wysokosc
+                arm_height_control3d.get(matrix);
+                for(int i = 0; i < 100 && ((matrix.m13 > y_desired +0.06 && matrix.m13 > -1.7) 
+                        ||(matrix.m13 < y_desired -0.06&& matrix.m13 < 2.2 )); i++)
+                {
+                    if(matrix.m13 < y_desired)
+                        move(2);
+                    else
+                        move(-2);
+                    Thread.sleep(70);
+                    arm_height_control3d.get(matrix);
+                }
+                
+                //promien
+                arm_width_control3d.get(matrix);
+                for(int i = 0; i < 100 && (( matrix.m13+2. > Math.sqrt(Math.pow(x_desired,2)+Math.pow(z_desired,2)) +0.06 && matrix.m13+2. > 3.2 )
+                        ||( matrix.m13+2. < Math.sqrt(Math.pow(x_desired,2)+Math.pow(z_desired,2)) -0.06 && matrix.m13+2. < 4.9)); i++)
+                {
+                    if(matrix.m13+2. < Math.sqrt(Math.pow(x_desired,2)+Math.pow(z_desired,2)))
+                        move(3);
+                    else
+                        move(-3);
+                    Thread.sleep(70);
+                    arm_width_control3d.get(matrix);
+                }
+                
+                }
+               catch(Exception exception)
+               {
+                JOptionPane.showMessageDialog(ref_okno, "Błędne wartości");
+               }
             }
             else if(bt==aktywuj_p)
             {
-                 JOptionPane.showMessageDialog(ref_okno, "Wciśnięto przycisk 2");
-                x = Integer.parseInt(wsp_x.getText());
-                y = Integer.parseInt(wsp_y.getText());
-                z = Integer.parseInt(wsp_z.getText());
+                try{
+                    x_desired = Double.parseDouble(wsp_x.getText());
+                    z_desired = Double.parseDouble(wsp_z.getText());
+                    if(Math.sqrt(Math.pow(x_desired,2)+Math.pow(z_desired,2)) > 4.2 
+                            && Math.sqrt(Math.pow(x_desired,2)+Math.pow(z_desired,2)) < 6)
+                    {
+                        move_sphere(x_desired, z_desired);
+                    }
+                    
+                    
+                }
+               catch(Exception exception)
+               {
+                JOptionPane.showMessageDialog(ref_okno, "Błędne wartości");
+               }
             }
         }
 
@@ -149,7 +205,7 @@ public class Project_POiG extends Applet implements KeyListener {
   aktywuj.addActionListener(new ObslugaPrzycisku(ref_okno));
   
   aktywuj_p = new JButton("przemiesc przedmiot");
-  aktywuj.addActionListener(new ObslugaPrzycisku(ref_okno));
+  aktywuj_p.addActionListener(new ObslugaPrzycisku(ref_okno));
   
   p.add(wsp_x_l);
   p.add(wsp_x);
@@ -251,17 +307,11 @@ public class Project_POiG extends Applet implements KeyListener {
     //-----
     Point3f point_l = new Point3f();
     lp.getPosition(point_l);
-    sph_tr.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-    sph_tr_3d.setTranslation(new Vector3f(point_l.x, point_l.y, point_l.z));
-    sph_tr.setTransform(sph_tr_3d);
-
-    Sphere sph1 = new Sphere(0.3f, base_ap);
-    sph_tr.addChild(sph1);
-    ground.addChild(sph_tr);
+   
     //------
   
   ground.addChild(lp);//sw punktowe
-  objRoot.addChild(createAmbientLight(0.5f, 1f, 1f));//sw ambient 0.5f, 1f, 1f     100f, 200f, 200f    1.1f, 2.2f, 2.2f  
+  objRoot.addChild(createAmbientLight(0.5f, 1f, 1f));
   
   //-------------------------------
   
@@ -342,65 +392,54 @@ private Light createAmbientLight(float r, float g, float b) {
 private void move(int key){
     switch (key){
         case 1:       
-    {
-        base3dstep.rotY(Math.PI / 32);
-        base.getTransform(base3d);
-        base3d.get(matrix);
-        base3d.setTranslation(new Vector3d(0.0, 0.0, 0.0));
-        base3d.mul(base3dstep);
-        base3d.setTranslation(new Vector3d(matrix.m03, matrix.m13, matrix.m23));
-        base.setTransform(base3d);
-        break;
-    }
+        {
+            base3dstep.rotY(Math.PI / 32);
+            base.getTransform(base3d);
+            base3d.mul(base3dstep);
+            base.setTransform(base3d);
+            break;
+        }
         case -1:{
-        base3dstep.rotY(-Math.PI / 32);
-        base.getTransform(base3d);
-        base3d.get(matrix);
-        base3d.setTranslation(new Vector3d(0.0, 0.0, 0.0));
-        base3d.mul(base3dstep);
-        base3d.setTranslation(new Vector3d(matrix.m03, matrix.m13, matrix.m23));
-        base.setTransform(base3d);
-        break;
-    }
+            base3dstep.rotY(-Math.PI / 32);
+            base.getTransform(base3d);
+            base3d.mul(base3dstep);
+            base.setTransform(base3d);
+            break;
+        }
         case 2:{
-            height+=0.1;
+           height+=0.1;
            arm_height_control3d_step.setTranslation(new Vector3d(0.1, 0, 0.0));
            arm_height_control.getTransform( arm_height_control3d);
-           arm_height_control3d.get(matrix);
            arm_height_control3d.mul( arm_height_control3d_step);
            arm_height_control.setTransform( arm_height_control3d);
            break;
-    }
+        }
         case -2:{
             height-=0.1;
             arm_height_control3d_step.setTranslation(new Vector3d(-0.1, 0, 0.0));
             arm_height_control.getTransform( arm_height_control3d);
-            arm_height_control3d.get(matrix);
             arm_height_control3d.mul( arm_height_control3d_step);
             arm_height_control.setTransform( arm_height_control3d);
             break;
-    }
+        }
         case 3:{
             radius += 0.1;
            arm_width_control3d_step.setTranslation(new Vector3d(0, 0.1, 0.0));
            arm_width_control.getTransform( arm_width_control3d);
-           arm_width_control3d.get(matrix);
            arm_width_control3d.mul( arm_width_control3d_step);
            arm_width_control.setTransform( arm_width_control3d);
            break;
-    }
+        }
         case -3:{
             radius -= 0.1;
             Vector3f position = new Vector3f();
             arm_width_control3d.get(position);
             arm_width_control3d_step .setTranslation(new Vector3d(0, -0.1, 0.0));
-            arm_width_control .getTransform( arm_width_control3d);
-            arm_width_control3d.get(matrix);
-            arm_width_control3d.mul( arm_width_control3d_step);
+            arm_width_control.getTransform( arm_width_control3d);
+            arm_width_control3d.mul(arm_width_control3d_step);
             arm_width_control.setTransform( arm_width_control3d);
             break;
-    }
-
+        }
         case 4 :
         case -4:{
           if(!picked_up)
@@ -427,56 +466,63 @@ private void move(int key){
           
           
             if((Math.pow(m4_sphere.m03-m4_chwytak.m03 ,2) + Math.pow(m4_sphere.m13-m4_chwytak.m13, 2) 
-                    +Math.pow(m4_sphere.m23-m4_chwytak.m23, 2)  <  1.5)||playing)
+                    +Math.pow(m4_sphere.m23-m4_chwytak.m23, 2)  <  1.5))
             {
               sphere_object.removeChild(element);
               sphere_object_ch.addChild(element);
               picked_up=!picked_up;
             }
-            break;
            }  
-      else
-      {
-          sphere_object_ch.removeChild(element);//usuniecie przenoszonego elementu
+          else
+          {
+            sphere_object_ch.removeChild(element);//usuniecie przenoszonego elementu
+
+            // polozenie chwytaka - zdobycie informacji
+            base.getTransform(tr1);
+            arm_height_control.getTransform(tr2);
+            arm_width_control.getTransform(tr3);
+            sphere_object_ch.getTransform(tr4);
+
+            //ustawienie transformacji dajacej polozenie chwytaka
+            sphere_object_tr3d.setIdentity();
+            sphere_object_tr3d.mul(tr1);
+            sphere_object_tr3d.mul(tr2);
+            sphere_object_tr3d.mul(tr3);
+            sphere_object_tr3d.mul(tr4);
+
+            //Ustawienie nowego polozenia kulki po opadnieciu
+            Vector3f falling1 = new Vector3f();//przesunięcie arm_height_control wzgledem polozenia poczatkowego 
+                                               //- potrzenbe tylko by wiedziec o ile opuscic
+            tr2.get(falling1);//translacja arm_heigt_control
+
+            //setTranslation nadpisuje stary wektor translacji, wiec dajemy nowy (falling2)
+            Vector3f falling2 = new Vector3f();//laczne przesuniecie wzgledem srodka podloza
+            Matrix4f m4 = new Matrix4f();
+            sphere_object_tr3d.get(m4);
+
+            falling2.x = m4.m03;//ustawienie wartosci przesuniec x, y, z
+            falling2.y = m4.m13;
+            falling2.z = m4.m23;
+            falling2.y += -falling1.y -base_height/2 + sph_radius;//uaktualnienie przesuniecia w y (pion)
+                           // o spadek na ziemie -base_height/2  i promien kuli
+
+            sphere_object_tr3d.setTranslation(falling2);//przesuniecie kuli do porzadanego miejca
+            sphere_object.setTransform(sphere_object_tr3d);
+            sphere_object.addChild(element);//dodanie kuli do transformgroupa zwiazanego z ziemia
+            picked_up=!picked_up;
           
-          // polozenie chwytaka - zdobycie informacji
-          base.getTransform(tr1);
-          arm_height_control.getTransform(tr2);
-          arm_width_control.getTransform(tr3);
-          sphere_object_ch.getTransform(tr4);
-          
-          //ustawienie transformacji dajacej polozenie chwytaka
-          sphere_object_tr3d.setIdentity();
-          sphere_object_tr3d.mul(tr1);
-          sphere_object_tr3d.mul(tr2);
-          sphere_object_tr3d.mul(tr3);
-          sphere_object_tr3d.mul(tr4);
-          
-          //Ustawienie nowego polozenia kulki po opadnieciu
-          Vector3f falling1 = new Vector3f();//przesunięcie arm_height_control wzgledem polozenia poczatkowego 
-                                             //- potrzenbe tylko by wiedziec o ile opuscic
-          tr2.get(falling1);//translacja arm_heigt_control
-          
-          //setTranslation nadpisuje stary wektor translacji, wiec dajemy nowy (falling2)
-          Vector3f falling2 = new Vector3f();//laczne przesuniecie wzgledem srodka podloza
-          Matrix4f m4 = new Matrix4f();
-          sphere_object_tr3d.get(m4);
-          
-          falling2.x = m4.m03;//ustawienie wartosci przesuniec x, y, z
-          falling2.y = m4.m13;
-          falling2.z = m4.m23;
-          falling2.y += -falling1.y -base_height/2 + sph_radius;//uaktualnienie przesuniecia w y (pion)
-                         // o spadek na ziemie -base_height/2  i promien kuli
-                                                           
-          sphere_object_tr3d.setTranslation(falling2);//przesuniecie kuli do porzadanego miejca
-          sphere_object.setTransform(sphere_object_tr3d);
-          sphere_object.addChild(element);//dodanie kuli do transformgroupa zwiazanego z ziemia
-          picked_up=!picked_up;
-          break;
           }
-      }
+          break;
+        }
    default: break;
    }
+}
+
+
+public void move_sphere(double x_des, double z_des){
+    
+    sphere_object_tr3d.setTranslation(new Vector3d(x_des, sph_radius, z_des));
+    sphere_object.setTransform(sphere_object_tr3d);
 }
 
 ////=====================main============================================
@@ -582,3 +628,4 @@ private void move(int key){
  }
 
 }
+
