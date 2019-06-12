@@ -72,6 +72,13 @@ public class Project_POiG extends Applet implements KeyListener{
   private double x_desired,y_desired,z_desired;
   
   private Matrix4d matrix = new Matrix4d();
+  
+  //POLOZENIE POCZATKOWE PRZY NAGRYWANIU
+  private Transform3D  tr_p1 = new Transform3D();
+  private Transform3D  tr_p2 = new Transform3D();
+  private Transform3D  tr_p3 = new Transform3D();
+  private float height_p, radius_p;
+  
   //ZMIENNE GLOBALNE
   private float height = 0.0f;
   private float radius = 0.0f;
@@ -421,8 +428,12 @@ private void move(int key){
         case -4:{
           if(!picked_up)
           {       
+            //polozenie sfery
             sphere_object.getTransform(tr5);
-
+            Matrix4f m4_sphere = new Matrix4f();
+            tr5.get(m4_sphere);
+            
+            //polozenie chwytaka
             base.getTransform(tr1);
             arm_height_control.getTransform(tr2);
             arm_width_control.getTransform(tr3);
@@ -436,10 +447,7 @@ private void move(int key){
 
             Matrix4f m4_chwytak = new Matrix4f();
             sphere_object_tr3d.get(m4_chwytak);
-
-            Matrix4f m4_sphere = new Matrix4f();
-            tr5.get(m4_sphere);
-          
+            
             if((Math.pow(m4_sphere.m03-m4_chwytak.m03 ,2) + Math.pow(m4_sphere.m13-m4_chwytak.m13, 2) 
                     +Math.pow(m4_sphere.m23-m4_chwytak.m23, 2)  <  1.5))
             {
@@ -567,17 +575,27 @@ public void move_sphere(double x_des, double z_des){
    }
     if (key == 'k'){
         //---rozpoczęcie/zakonczenie nagrywania
-        recording = ! recording;
+        recording = !recording;
         if(recording)
+        {
             steps.removeAllElements (); //---czyszczenie elementów wektora
+            base.getTransform(tr_p1);
+            arm_height_control.getTransform(tr_p2);
+            arm_width_control.getTransform(tr_p3);
+            height_p = height;
+            radius_p = radius;
+        }
+            
     }
     
     if (key == 'l'&& !recording){
         //-----------przywracanie do pozycji sprzed nagrywania
-        for(int k = steps.size();k>0;k--)
-        {
-            move(-steps.get(k-1));
-        }
+        base.setTransform(tr_p1);
+        arm_height_control.setTransform(tr_p2);
+        arm_width_control.setTransform(tr_p3);
+        height = height_p;
+        radius = radius_p;
+        
         //odtwarzanie ruchu robota 
         for(int k = 0;k<steps.size();k++)
         {
