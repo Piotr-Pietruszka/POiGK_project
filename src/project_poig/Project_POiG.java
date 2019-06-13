@@ -170,6 +170,10 @@ public class Project_POiG extends Applet implements KeyListener{
                     {
                         move_sphere(x_desired, z_desired);
                     }
+                    else
+                    {
+                        JOptionPane.showMessageDialog(ref_okno, "Kulka nie może zostać umiesczona poza zasięgiem chwytaka. Odległość od środka powinna się zawierać w przedziale (4.2, 6).");
+                    }
                 }
                catch(Exception exception)
                {
