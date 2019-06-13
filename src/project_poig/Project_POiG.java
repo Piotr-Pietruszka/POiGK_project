@@ -226,7 +226,8 @@ public class Project_POiG extends Applet implements KeyListener{
     
   //PODSTAWA
   ground.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-  ground_position.setTranslation(new Vector3d(0.0, -3.0, -20.0));
+  ground_position.setTranslation(new Vector3d(0, -3.0, -23.0));
+  ground_position.setRotation(new AxisAngle4f(1f, -0.5f, 0f, 0.3f));
   ground.setTransform(ground_position);
   Appearance ground_ap = createAppearance(new Color3f(1f, 3f, 1f));
   Material mat = new Material(new Color3f(0.1f,0,0.1f),new Color3f (0.1f,0,0.1f),new Color3f (1,1,1), new Color3f(3f,0,5f), 40);
@@ -609,7 +610,8 @@ public void move_sphere(double x_des, double z_des){
     }
     
     if (key=='r'){ //resetowanie pozycji
-         ground_position.setTranslation(new Vector3d(0, -3.0, -20.0));
+         ground_position.setTranslation(new Vector3d(0, -3.0, -23.0));
+         ground_position.setRotation(new AxisAngle4f(1f, -0.5f, 0f, 0.3f));
          ground.setTransform(ground_position);
     }
 
